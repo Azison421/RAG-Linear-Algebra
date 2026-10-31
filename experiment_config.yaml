@@ -11,8 +11,12 @@ embedding_precision: float32
 n_chunks: 60
 n_queries: 25
 top_k: 3
-pca_dims: [59, 32, 16, 8]
+pca_dims:
+- 59
+- 32
+- 16
+- 8
 random_seed: 20261031
-corpus_sha256: null
-queries_sha256: null
+corpus_sha256: f9c6effe0297fb76aca84435a37a39b8a48ff2f567982778cd852070db3e4569
+queries_sha256: d09ec555e741b246a30a2915a0bf8fb4b4382dece4507d640229f1d7c4e53293
 python_version: 3.12.10

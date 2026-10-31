@@ -1,6 +1,8 @@
 """读取实验配置，转换方案规定的 Float32 向量 BLOB。"""
 
 import argparse
+from hashlib import sha256
+import json
 import logging
 from pathlib import Path
 
@@ -10,6 +12,22 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "experiment_config.yaml"
+CORPUS_TEXT_FIELDS = (
+    "chunk_id", "group_code", "topic", "title", "content", "confusable_with",
+    "source_title", "source_author", "source_year", "source_url",
+)
+
+
+def corpus_text_sha256(connection):
+    """按固定 ID 顺序散列文本与来源，排除后续写入的模型和向量字段。"""
+    rows = connection.execute(
+        f"SELECT {', '.join(CORPUS_TEXT_FIELDS)} FROM chunks ORDER BY chunk_id"
+    ).fetchall()
+    records = [dict(zip(CORPUS_TEXT_FIELDS, row)) for row in rows]
+    payload = json.dumps(
+        records, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return sha256(payload).hexdigest()
 
 
 def load_config(path=DEFAULT_CONFIG):

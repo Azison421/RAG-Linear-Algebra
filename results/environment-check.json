@@ -2,7 +2,7 @@
   "status": "passed",
   "purpose": "环境验证；三条示例文本不属于正式课程实验",
   "specification": "RAG_向量检索线性代数大作业_V3.1.md",
-  "checked_at": "2026-10-31T14:57:22.119705+08:00",
+  "checked_at": "2026-10-31T15:53:45.774948+08:00",
   "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
   "python_executable": "G:\\Newsfound\\范子轩\\海油2501\\大一\\线性代数\\大作业\\RAG-Linear-Algebra\\.venv\\Scripts\\python.exe",
   "model_path": "G:\\Newsfound\\范子轩\\海油2501\\大一\\线性代数\\大作业\\模型\\bge-small-zh-v1.5",

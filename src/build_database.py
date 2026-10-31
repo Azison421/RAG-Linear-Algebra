@@ -1,12 +1,19 @@
-"""按 V3.1 建立单表数据库，只导入 60 块目录，不导入待核正文。"""
+"""按 V3.1 建立 60 块目录；全部数据获用户核准后可显式冻结。"""
 
 import argparse
+from collections import Counter
+from contextlib import closing
+import csv
+from hashlib import sha256
 import json
 import logging
 from pathlib import Path
+import re
 import sqlite3
 
-from common import DEFAULT_CONFIG, ROOT, load_config
+import yaml
+
+from common import DEFAULT_CONFIG, ROOT, corpus_text_sha256, load_config
 
 
 CATALOG = {
@@ -92,7 +99,7 @@ def build_database(database_path):
             rows.append((chunk_id, group, topic, title, "", json.dumps(related)))
     database_path = Path(database_path)
     database_path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(database_path) as connection:
+    with closing(sqlite3.connect(database_path)) as connection, connection:
         connection.execute(SCHEMA)
         connection.executemany(
             """INSERT INTO chunks
@@ -112,16 +119,81 @@ def build_database(database_path):
     return counts
 
 
+def freeze_dataset(database_path, queries_path, config_path):
+    """核验完整数据并写入冻结哈希；调用前须由用户核准正文和查询。"""
+    config_path = Path(config_path)
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    queries_path = Path(queries_path)
+    with closing(sqlite3.connect(Path(database_path).resolve().as_uri() + "?mode=ro", uri=True)) as connection:
+        rows = connection.execute(
+            "SELECT chunk_id, content, source_title, source_author, source_year, source_url "
+            "FROM chunks ORDER BY chunk_id"
+        ).fetchall()
+        if len(rows) != config["n_chunks"] or any(
+            not row[1].strip() or any(value is None or value == "" for value in row[2:])
+            for row in rows
+        ):
+            raise ValueError("全部知识正文及来源尚未齐全，不能冻结")
+        with queries_path.open(encoding="utf-8", newline="") as stream:
+            reader = csv.DictReader(stream)
+            fields = ["query_id", "query_text", "query_type", "gold_chunk_id", "acceptable_ids", "notes"]
+            if reader.fieldnames != fields:
+                raise ValueError("查询 CSV 表头与方案不一致")
+            queries = list(reader)
+        if len(queries) != config["n_queries"] or Counter(
+            query["query_type"] for query in queries
+        ) != {"contrast": 15, "paraphrase": 5, "formula": 5}:
+            raise ValueError("查询必须为 25 条，类型数量为 15/5/5")
+        ids = {row[0] for row in rows}
+        query_ids, query_texts, pair_numbers = set(), set(), []
+        for query in queries:
+            if None in query or any(value is None for value in query.values()):
+                raise ValueError("查询 CSV 存在缺列或多余列")
+            if not all(query[field].strip() for field in fields if field != "acceptable_ids"):
+                raise ValueError("查询的必填字段不能留空")
+            if query["notes"].startswith("待核"):
+                raise ValueError("查询仍标为待核，须经用户确认后再冻结")
+            if query["query_id"] in query_ids or query["query_text"] in query_texts:
+                raise ValueError("查询 ID 和问题正文均须唯一")
+            if query["gold_chunk_id"] not in ids:
+                raise ValueError("查询的唯一 Gold 不存在于知识库")
+            acceptable = json.loads(query["acceptable_ids"]) if query["acceptable_ids"] else []
+            if not isinstance(acceptable, list) or any(not isinstance(item, str) or item not in ids for item in acceptable):
+                raise ValueError("acceptable_ids 须为空或由有效块 ID 构成的 JSON 列表")
+            if query["query_type"] == "contrast":
+                matches = re.findall(r"\bP(0[1-9]|1[0-5])\b", query["notes"])
+                if len(matches) != 1 or query["gold_chunk_id"] not in CONFUSABLE_PAIRS[int(matches[0]) - 1]:
+                    raise ValueError("概念区分题的 notes 须注明一个 P01～P15 编号，Gold 须属于该对")
+                pair_numbers.append(int(matches[0]))
+            query_ids.add(query["query_id"])
+            query_texts.add(query["query_text"])
+        if sorted(pair_numbers) != list(range(1, 16)):
+            raise ValueError("概念区分查询必须完整覆盖 P01～P15，每对一题")
+        hashes = (corpus_text_sha256(connection), sha256(queries_path.read_bytes()).hexdigest())
+    old_hashes = (config["corpus_sha256"], config["queries_sha256"])
+    if old_hashes != (None, None) and old_hashes != hashes:
+        raise ValueError("数据与既有冻结哈希不一致，须先按 CHANGELOG 规则记录变更，不能直接覆盖")
+    if old_hashes != hashes:
+        config["corpus_sha256"], config["queries_sha256"] = hashes
+        config_path.write_text(yaml.safe_dump(config, allow_unicode=True, sort_keys=False), encoding="utf-8", newline="\n")
+    logging.info("corpus_sha256=%s queries_sha256=%s", *hashes)
+    return hashes
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--database", type=Path, default=ROOT / "database" / "knowledge.db")
+    parser.add_argument("--queries", type=Path, default=ROOT / "data" / "queries.csv")
+    parser.add_argument("--freeze", action="store_true", help="仅在用户核准全部正文和查询后执行，写入配置中的冻结哈希")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     config = load_config(args.config)
     counts = build_database(args.database)
     if sum(counts.values()) != config["n_chunks"]:
         raise ValueError("数据库目录总数与配置不一致")
+    if args.freeze:
+        freeze_dataset(args.database, args.queries, args.config)
 
 
 if __name__ == "__main__":
