@@ -1,0 +1,18 @@
+model_name: BAAI/bge-small-zh-v1.5
+model_dir: ../模型/bge-small-zh-v1.5
+model_file_sha256: 354763b9b1357bc9c44f62c6be2276321081ed2567773608c0d0785b61d5a026
+model_download_date: null
+embedding_dim: 512
+query_instruction: 为这个句子生成表示以用于检索相关文章：
+normalize_embeddings: true
+encode_batch_size: 32
+max_seq_length: 512
+embedding_precision: float32
+n_chunks: 60
+n_queries: 25
+top_k: 3
+pca_dims: [59, 32, 16, 8]
+random_seed: 20261031
+corpus_sha256: null
+queries_sha256: null
+python_version: 3.12.10

@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "purpose": "环境验证；三条示例文本不属于正式课程实验",
+  "specification": "RAG_向量检索线性代数大作业_V3.1.md",
+  "checked_at": "2026-10-31T14:57:22.119705+08:00",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "python_executable": "G:\\Newsfound\\范子轩\\海油2501\\大一\\线性代数\\大作业\\RAG-Linear-Algebra\\.venv\\Scripts\\python.exe",
+  "model_path": "G:\\Newsfound\\范子轩\\海油2501\\大一\\线性代数\\大作业\\模型\\bge-small-zh-v1.5",
+  "model_name": "BAAI/bge-small-zh-v1.5",
+  "model_file_sha256": "354763b9b1357bc9c44f62c6be2276321081ed2567773608c0d0785b61d5a026",
+  "encoding_parameters": {
+    "batch_size": 32,
+    "precision": "float32",
+    "max_seq_length": 512,
+    "document_instruction": "",
+    "query_instruction": "为这个句子生成表示以用于检索相关文章：",
+    "normalize_embeddings": true,
+    "random_seed": 20261031
+  },
+  "tokenizer_class": "BertTokenizer",
+  "model_modules": [
+    "sentence_transformers.models.Transformer",
+    "sentence_transformers.models.Pooling",
+    "sentence_transformers.models.Normalize"
+  ],
+  "local_files_only": true,
+  "device": "cuda",
+  "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "document_vector_shape": [
+    3,
+    512
+  ],
+  "query_vector_shape": [
+    1,
+    512
+  ],
+  "document_vector_norms": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "has_normalize_module": true,
+  "normalize_embeddings_false_norms": [
+    1.0,
+    0.9999999403953552,
+    1.0
+  ],
+  "normalize_embeddings_false_norm_summary": {
+    "min": 0.9999999403953552,
+    "mean": 1.0,
+    "max": 1.0
+  },
+  "sample_similarity_scores": [
+    0.452020525932312,
+    0.4268716275691986,
+    0.6640697717666626
+  ],
+  "sample_top_document": 3,
+  "pca_output_shape": [
+    3,
+    2
+  ],
+  "pca_svd_eigh_sklearn": "passed",
+  "yaml_unicode_roundtrip": "passed",
+  "scipy_kendalltau": "passed",
+  "gram_checks": "对称性和半正定性通过",
+  "sqlite_roundtrip": "passed",
+  "sqlite_version": "3.49.1",
+  "pandas_csv": "passed",
+  "matplotlib_png": "passed",
+  "chinese_font": "C:\\Windows\\Fonts\\simsun.ttc",
+  "pip_check": "No broken requirements found.",
+  "package_versions": {
+    "torch": "2.12.1+cu132",
+    "sentence-transformers": "6.2.0",
+    "transformers": "5.22.1",
+    "huggingface-hub": "2.4.0",
+    "tokenizers": "0.23.3",
+    "safetensors": "0.8.0",
+    "numpy": "2.5.0",
+    "pandas": "3.0.3",
+    "scikit-learn": "1.9.0",
+    "matplotlib": "3.11.2",
+    "PyYAML": "6.0.3",
+    "scipy": "1.18.0"
+  }
+}

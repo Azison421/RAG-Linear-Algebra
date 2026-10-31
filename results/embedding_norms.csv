@@ -1,0 +1,5 @@
+﻿run_scope,record_type,text_id,raw_norm,normalized_norm,raw_norm_min,raw_norm_mean,raw_norm_max
+smoke,sample,SMOKE-01,1.0,1.0,,,
+smoke,sample,SMOKE-02,0.9999999403953552,1.0,,,
+smoke,sample,SMOKE-03,1.0,1.0,,,
+smoke,summary,,,,0.9999999403953552,1.0,1.0

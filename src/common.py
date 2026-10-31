@@ -1,0 +1,51 @@
+"""读取实验配置，转换方案规定的 Float32 向量 BLOB。"""
+
+import argparse
+import logging
+from pathlib import Path
+
+import numpy as np
+import yaml
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CONFIG = ROOT / "experiment_config.yaml"
+
+
+def load_config(path=DEFAULT_CONFIG):
+    """相对模型路径以配置文件所在目录为基准。"""
+    path = Path(path).resolve()
+    config = yaml.safe_load(path.read_text(encoding="utf-8"))
+    config["model_dir"] = str((path.parent / config["model_dir"]).resolve())
+    return config
+
+
+def vector_to_blob(vector, dimension=512):
+    vector = np.asarray(vector, dtype=np.float32)
+    if vector.shape != (dimension,) or not np.isfinite(vector).all():
+        raise ValueError(f"需要含 {dimension} 个有限数值的一维向量")
+    return vector.tobytes()
+
+
+def blob_to_vector(blob, dimension=512):
+    if len(blob) != dimension * np.dtype(np.float32).itemsize:
+        raise ValueError(f"BLOB 长度应为 {dimension * 4} 字节")
+    vector = np.frombuffer(blob, dtype=np.float32)
+    if not np.isfinite(vector).all():
+        raise ValueError("向量包含非有限数值")
+    return vector
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    config = load_config(args.config)
+    logging.info("model=%s dimension=%s", config["model_name"], config["embedding_dim"])
+    logging.info("model_dir=%s", config["model_dir"])
+    logging.info("corpus_sha256=%s queries_sha256=%s", config["corpus_sha256"], config["queries_sha256"])
+
+
+if __name__ == "__main__":
+    main()

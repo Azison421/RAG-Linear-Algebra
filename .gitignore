@@ -1,0 +1,9 @@
+.venv/
+.runtime-cache/
+__pycache__/
+*.py[cod]
+.day1-work/
+~$*
+*.db-journal
+*.db-wal
+*.db-shm
