@@ -221,26 +221,6 @@ def main():
     (args.output_dir / "environment-check.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    norm_rows = [
-        {
-            "run_scope": "smoke",
-            "record_type": "sample",
-            "text_id": f"SMOKE-{i + 1:02d}",
-            "raw_norm": float(raw_norms[i]),
-            "normalized_norm": float(norms[i]),
-        }
-        for i in range(len(documents))
-    ]
-    norm_rows.append({
-        "run_scope": "smoke",
-        "record_type": "summary",
-        "raw_norm_min": float(raw_norms.min()),
-        "raw_norm_mean": float(raw_norms.mean()),
-        "raw_norm_max": float(raw_norms.max()),
-    })
-    pd.DataFrame(norm_rows).to_csv(
-        args.output_dir / "embedding_norms.csv", index=False, encoding="utf-8-sig"
-    )
     print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
 
 
